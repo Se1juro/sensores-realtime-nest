@@ -9,7 +9,34 @@ export class SensorRepository {
     @InjectModel(Sensors.name) private readonly sensorModel: Model<Sensors>,
   ) {}
 
-  async findAll(): Promise<Sensors[]> {
-    return this.sensorModel.find().exec();
+  async findLatestDataBySensorId(sensorId: number, sensorData: any) {
+    return this.sensorModel
+      .aggregate([
+        {
+          $match: {
+            sensor_id: sensorId,
+          },
+        },
+        {
+          $project: {
+            lastData: {
+              $arrayElemAt: [
+                {
+                  $slice: ['$data', -1],
+                },
+                0,
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            timestamp: '$lastData.timestamp',
+            ...sensorData,
+          },
+        },
+      ])
+      .exec();
   }
 }
