@@ -24,7 +24,12 @@ export class AuthService {
 
     const userToSave = { ...user, password: hashPassword };
 
-    return await this.authRepository.createUser(userToSave);
+    const userCreated = await this.authRepository.createUser(userToSave);
+
+    return {
+      user: userCreated,
+      token: this.generateToken(userCreated),
+    };
   }
 
   async loginUser(user: LoginAuthValidator) {

@@ -1,32 +1,43 @@
-import { OnModuleInit } from '@nestjs/common';
+import { UseFilters, UseInterceptors } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { WsJwtExceptionFilter } from 'src/exceptions/websocket.exception';
+import { WsJwtAuthInterceptor } from 'src/interceptors/jwtWebSocket.interceptor';
 import { SensorService } from 'src/sensors/services/sensors.service';
 
+@UseFilters(new WsJwtExceptionFilter())
 @WebSocketGateway({ cors: { origin: '*' } })
-export class GatewayService implements OnModuleInit {
+export class GatewayService
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   constructor(private readonly sensorService: SensorService) {}
+
   @WebSocketServer()
   private server: Server;
 
   private roomIntervals: { [room: string]: NodeJS.Timeout } = {};
 
-  onModuleInit() {
-    this.server.on('connection', (socket) => {
-      console.log(socket.id);
-      console.log('Client Connected');
-    });
+  handleConnection(client: Socket) {
+    console.log(`Client ${client.id} connected`);
   }
 
+  handleDisconnect(client: Socket) {
+    console.log(`Client ${client.id} disconnected`);
+  }
+
+  @UseInterceptors(WsJwtAuthInterceptor)
   @SubscribeMessage('user_join')
   handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() body: any) {
-    const room = `room_${client.id}-${body.userId}-${body.sensor}`;
+    const user = client['user'];
+    const room = `room_${client.id}-${user._id}-${body.sensor}`;
     client.join(room);
 
     const interval = setInterval(async () => {
