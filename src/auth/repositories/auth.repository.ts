@@ -15,6 +15,6 @@ export class AuthRepository {
   }
 
   findUserByUserName(userName: string) {
-    return this.userModel.findOne({ userName }, { __v: 0 });
+    return this.userModel.findOne({ userName }, { __v: 0 }).exec();
   }
 }

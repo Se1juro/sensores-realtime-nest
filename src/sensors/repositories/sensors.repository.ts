@@ -10,7 +10,7 @@ export class SensorRepository {
   ) {}
 
   findAllSensors() {
-    return this.sensorModel.aggregate([
+    /*     return this.sensorModel.aggregate([
       {
         $project: {
           _id: 0,
@@ -18,7 +18,8 @@ export class SensorRepository {
           sensorName: '$sensor_name',
         },
       },
-    ]);
+    ]); */
+    return this.sensorModel.find({}, { data: 0 }).exec();
   }
 
   findLatestDataBySensorId(sensorId: number, sensorData: any) {
