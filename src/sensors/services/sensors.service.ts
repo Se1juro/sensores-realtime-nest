@@ -79,7 +79,7 @@ export class SensorService {
       throw new BadRequestException('Variable does not exist in this sensor');
     }
 
-    const timestamps: number[] = data.map((item) => item.timestamp);
+    const timestamps: Date[] = data.map((item) => new Date(item.timestamp));
 
     const variableValues: number[] = data.map((item) => item[variable]);
 
