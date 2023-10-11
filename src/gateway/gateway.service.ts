@@ -50,7 +50,11 @@ export class GatewayService
 
   @SubscribeMessage('user_leave')
   handleLeaveRoom(@ConnectedSocket() client: Socket, @MessageBody() body: any) {
-    const room = `room_${client.id}-${body.userId}-${body.sensor}`;
+    const user = client['user'];
+
+    const room = `room_${client.id}-${user._id}-${body.sensor}`;
+    client['user'] = undefined;
+
     client.leave(room);
 
     if (this.roomIntervals[room]) {
