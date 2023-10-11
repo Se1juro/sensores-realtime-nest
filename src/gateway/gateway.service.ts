@@ -6,7 +6,6 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Subscription } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { SensorService } from 'src/sensors/services/sensors.service';
 
@@ -16,10 +15,12 @@ export class GatewayService implements OnModuleInit {
   @WebSocketServer()
   private server: Server;
 
+  private roomIntervals: { [room: string]: NodeJS.Timeout } = {};
+
   onModuleInit() {
     this.server.on('connection', (socket) => {
       console.log(socket.id);
-      console.log('Connected');
+      console.log('Client Connected');
     });
   }
 
@@ -28,9 +29,24 @@ export class GatewayService implements OnModuleInit {
     const room = `room_${client.id}-${body.userId}-${body.sensor}`;
     client.join(room);
 
-    setInterval(async () => {
+    const interval = setInterval(async () => {
       const data = await this.sensorService.startChangeDetection(body.sensor);
       this.server.to(room).emit('new_data_sensor', data);
     }, 6000); // 6 Sec
+
+    this.roomIntervals[room] = interval;
+  }
+
+  @SubscribeMessage('user_leave')
+  handleLeaveRoom(@ConnectedSocket() client: Socket, @MessageBody() body: any) {
+    const room = `room_${client.id}-${body.userId}-${body.sensor}`;
+    client.leave(room);
+
+    if (this.roomIntervals[room]) {
+      clearInterval(this.roomIntervals[room]);
+      delete this.roomIntervals[room];
+    }
+
+    console.log('Client disconnected');
   }
 }

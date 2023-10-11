@@ -14,7 +14,7 @@ export class SensorService {
   ) {}
 
   async findAllSensors(): Promise<Sensors[]> {
-    return await this.sensorModel.find().exec();
+    return await this.sensorRepository.findAllSensors();
   }
 
   async startChangeDetection(sensorId: number) {
