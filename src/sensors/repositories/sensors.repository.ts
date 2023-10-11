@@ -20,6 +20,7 @@ export class SensorRepository {
       },
     ]);
   }
+
   findLatestDataBySensorId(sensorId: number, sensorData: any) {
     return this.sensorModel
       .aggregate([
@@ -48,6 +49,12 @@ export class SensorRepository {
           },
         },
       ])
+      .exec();
+  }
+
+  getDataVariable(sensorId: number) {
+    return this.sensorModel
+      .findOne({ sensor_id: sensorId }, { _id: 0, data: 1 })
       .exec();
   }
 }
