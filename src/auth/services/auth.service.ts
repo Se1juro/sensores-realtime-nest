@@ -26,6 +26,8 @@ export class AuthService {
 
     const userCreated = await this.authRepository.createUser(userToSave);
 
+    userCreated.password = undefined;
+
     return {
       user: userCreated,
       token: this.generateToken(userCreated),
@@ -43,6 +45,8 @@ export class AuthService {
     if (!checkPassword) throw new ForbiddenException('Password incorrect');
 
     const token = this.generateToken(userExits);
+
+    userExits.password = undefined;
 
     return { user: userExits, token };
   }
